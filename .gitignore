@@ -1,0 +1,12 @@
+models/
+__pycache__/
+input_folder/
+output_folder/
+archive_folder/
+old/
+images/
+tf1_models/
+object_detection/
+*.csv
+*.txt
+*.log
