@@ -2,9 +2,10 @@ import sqlite3
 from sqlite3 import Error
 import time
 import pandas as pd
+print(sqlite3.sqlite_version)
 
 # path to existent database
-path = '/home/lserra/Work/Serving/output_folder/cctv.sqlite'
+path = '/home/lserra/Work/Serving/output_folder/video/video.sqlite'
 
 def create_connection(path):
     connection = None
@@ -42,7 +43,7 @@ CREATE TABLE IF NOT EXISTS detections (
 
 # create database if it does not exist
 # create table if not exists
-#manage_database(connection, create_detections_table)
+manage_database(connection, create_detections_table)
 
 # Execute a query to the database
 def execute_query(connection, query):

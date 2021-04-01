@@ -11,7 +11,7 @@ from tensorflow_serving.apis import predict_pb2
 from tensorflow_serving.apis import prediction_service_pb2_grpc
 
 # import script to insert records to the database
-from manage_db import insert_multiple_detections
+from manage_video_db import insert_multiple_detections
 
 # Import utils from object detection module
 from object_detection.utils import visualization_utils as vis_util
@@ -167,8 +167,8 @@ def show_inference(host, image_path):
         THRESHOLD)
 
     # write detections to cctv db
-    #insert_multiple_detections(detections)
-    print(detections)
+    insert_multiple_detections(detections)
+    #print(detections)
 
     # save image with bounding boxes
     im_save = Image.fromarray(image_np)

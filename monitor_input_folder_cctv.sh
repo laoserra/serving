@@ -11,6 +11,7 @@ inotifywait -m -e create -e moved_to --format "%w%f" $DIR_IN | while read file
 do
   if [ ${file: -4} == ".jpg" ] || [ ${file: -4} == ".JPG" ]
   then
+      # update script from video bash script
     echo Detected $file, executing detections script
     python $SCRIPT $file
     mv $file $DIR_ARCHIVE
