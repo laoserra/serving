@@ -166,7 +166,7 @@ def show_inference(host, image_path):
         category_index,
         THRESHOLD)
 
-    # write detections to cctv db
+    # write detections to the video db
     insert_multiple_detections(detections)
     #print(detections)
 

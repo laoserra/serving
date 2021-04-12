@@ -9,12 +9,12 @@ source /home/lserra/python-virtual-environments/serving/bin/activate
 inotifywait -m -e create -e moved_to --format "%w%f" $DIR_IN | while read file
 
 do
-  if [ ${file: -4} == ".avi" ]
+  if [ ${file: -4} == ".mp4" ]
   then
-    for video in $DIR_IN/*.avi
+    for video in $DIR_IN/*.mp4
       do
         echo Detected $video, converting to jpeg frames
-        ffmpeg -i $video $DIR_IN/"$(basename "$video" .avi)"_%06d.jpg
+        ffmpeg -i $video $DIR_IN/"$(basename "$video" .mp4)"_%06d.jpg
         mv $video $DIR_ARCHIVE
         for frame in $DIR_IN/*.jpg
           do
