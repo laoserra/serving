@@ -4,7 +4,7 @@ import time
 import pandas as pd
 
 # path to existent database
-path = '/home/lserra/Work/Serving/output_folder/video/video.sqlite'
+path = '/home/lserra/Work/Serving/output_folder/video/video.db'
 
 def create_connection(path):
     connection = None
@@ -59,7 +59,10 @@ CREATE TABLE IF NOT EXISTS detections (
   video_id INTEGER NOT NULL,
   image_sequence INTEGER NOT NULL,
   object TEXT,
-  coordinates TEXT,
+  bbox_left REAL,
+  bbox_right REAL,
+  bbox_bottom REAL,
+  bbox_top REAL,
   score REAL,
   FOREIGN KEY (video_id) REFERENCES video (id)
     ON UPDATE NO ACTION
@@ -96,12 +99,12 @@ def execute_query(query, condition=None, connection_to_db=connection):
         print(f'The error "{e}" ocurred')
 
 # querying the database for detections
-select_detections = 'SELECT * FROM detections'
-detections = execute_query(select_detections)
+#select_detections = 'SELECT * FROM detections'
+#detections = execute_query(select_detections)
 #print(detections)
-df = pd.DataFrame(detections, columns=['id','unix_time_insertion','video_id','image_sequence',
-                                       'object','coordinates','score'])
-print(df)
+#df = pd.DataFrame(detections, columns=['id','unix_time_insertion','video_id','image_sequence','object',
+#                                        'bbox_left','bbox_right','bbox_bottom','bbox_top','score'])
+#print(df)
 
 # querying the video table
 #select_video = 'SELECT * FROM video'
@@ -109,11 +112,11 @@ print(df)
 #print(video_data)
 
 # querying the database for tracks
-select_tracks = 'SELECT * FROM tracks'
-tracks = execute_query(select_tracks)
+#select_tracks = 'SELECT * FROM tracks'
+#tracks = execute_query(select_tracks)
 #print(tracks)
-df = pd.DataFrame(tracks, columns=['id','object_id', 'coord_x', 'coord_y', 'video_id'])
-print(df)
+#df = pd.DataFrame(tracks, columns=['id','object_id', 'coord_x', 'coord_y', 'video_id'])
+#print(df)
 
 def manage_multiple_records(insert_table,
                             list_of_insertions,
@@ -194,15 +197,18 @@ def insert_multiple_detections(detections):
                     video_id,
                     image_sequence,
                     detection['object'],
-                    str(detection['coordinates']),
+                    round(detection['coordinates']['left'], 3),
+                    round(detection['coordinates']['right'], 3),
+                    round(detection['coordinates']['bottom'], 3),
+                    round(detection['coordinates']['top'], 3),
                     round(detection['score'], 3))
             detections_list.append(item)
             item = None
 
     insert_detections = '''
     INSERT INTO
-      detections (unix_time_insertion, video_id, image_sequence, 
-                  object, coordinates, score)
-    VALUES (?,?,?,?,?,?);
+      detections (unix_time_insertion, video_id, image_sequence, object,
+                  bbox_left, bbox_right, bbox_bottom, bbox_top, score)
+    VALUES (?,?,?,?,?,?,?,?,?);
     '''
     manage_multiple_records(insert_detections, detections_list)
