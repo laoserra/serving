@@ -104,7 +104,7 @@ def execute_query(query, condition=None, connection_to_db=connection):
 #print(detections)
 #df = pd.DataFrame(detections, columns=['id','unix_time_insertion','video_id','image_sequence','object',
 #                                        'bbox_left','bbox_right','bbox_bottom','bbox_top','score'])
-#print(df.tail(20))
+#print(df)
 
 # querying the video table
 #select_video = 'SELECT * FROM video'
@@ -175,19 +175,22 @@ def insert_multiple_tracks(tracks, video_name): # tracks argument is a dictionar
 
 
 # return detections' foreign key value and frame sequence number
-def get_video_id(video_name):
+def get_detection_attributes(image_name):
+    video_name = image_name[:-11] + '.mp4'
     select_video_id = 'SELECT id FROM video WHERE name = ?;'
     video_id = execute_query(select_video_id, (video_name,))
     video_id = video_id[0][0] #access int inside tuple inside list
 
-    return video_id
+    image_sequence = int(image_name[-10:-4])
+
+    return video_id, image_sequence
 
 #print(get_detection_attributes('test_1s_000011.jpg'))
 
 
 def insert_multiple_detections(detections):
-    video_id = get_video_id(detections[0]['video'])
-    frame_sequence = detections[0]['frame_sequence']
+    video_id = get_detection_attributes(detections[0]['image'])[0]
+    image_sequence = get_detection_attributes(detections[0]['image'])[1]
     detections_list = []
     item = None
     objects_of_interest = ['pedestrian']
@@ -195,7 +198,7 @@ def insert_multiple_detections(detections):
         if detection['object'] in objects_of_interest:
             item = (round(time.time()),
                     video_id,
-                    frame_sequence,
+                    image_sequence,
                     detection['object'],
                     round(detection['coordinates']['left'], 3),
                     round(detection['coordinates']['right'], 3),

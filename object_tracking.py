@@ -10,8 +10,8 @@ import os
 from utils.object_tracking_module import tracking_layer
 from utils import label_map_util
 from output_directories import PATH_TO_SAVE_VIDEOS
-from manage_video_db import insert_video_data
-from manage_video_db import insert_multiple_tracks
+import manage_video_db as db
+import detections_grpc_video as dgv
 
 
 #Uncomment the next line if you want CPU execution
@@ -30,6 +30,8 @@ video_ext= os.path.splitext(video_name)[1]
 output_video_name = video_base + '_bbox' + video_ext
 out = cv2.VideoWriter(PATH_TO_SAVE_VIDEOS + '/' + output_video_name, fourcc, fps, (width, height))
 
+# insert initial data to the video table
+db.insert_video_data(video_name, height, width, 0, 0)
 
 #initialize the frame counting variable
 frame_number = 0
@@ -44,7 +46,23 @@ while(True):
         frame_number += 1
         start_time = time.time()
         #process the image
-        processed_img = backbone.processor(img, height, width)
+        processed_img_raw = backbone.processor(img, height, width)
+        processed_img = processed_img_raw[0]
+        output_dict = processed_img_raw[1]
+        category_index = processed_img_raw[2]
+        threshold = processed_img_raw[3]
+        detections = dgv.get_detections(
+            video_name,
+            frame_number,
+            width,
+            height,
+            output_dict['detection_boxes'],
+            output_dict['detection_classes'],
+            output_dict['detection_scores'],
+            category_index,
+            threshold)
+        # write detections to the video db
+        db.insert_multiple_detections(detections)
         #print(return_tracks_data())
         print ("per-frame time: " + str(time.time() - start_time) + " seconds")
         print ("overall time: " + str(time.time() - init_time) + " seconds")     
@@ -55,8 +73,15 @@ while(True):
         break 
 print("end of the video!")
 
-# insert data to the video table
-insert_video_data(video_name, height, width, backbone.totalUp, backbone.totalDown)
+
+# update counts on the video table
+update_counts = f"""
+UPDATE video
+SET counts_up = {backbone.totalUp},
+    counts_down = {backbone.totalDown}
+WHERE name = '{video_name}';
+"""
+db.manage_database(update_counts)
 
 # insert tracks to the tracks table
-insert_multiple_tracks(backbone.tracker_dict, video_name)
+db.insert_multiple_tracks(backbone.tracker_dict, video_name)

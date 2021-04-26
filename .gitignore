@@ -11,4 +11,8 @@ object_detection/
 *.txt
 *.log
 *.swp
+*.docx
+*.odt
 From_Maralbek/
+tests/
+

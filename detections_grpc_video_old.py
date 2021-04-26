@@ -12,6 +12,12 @@ from tensorflow_serving.apis import predict_pb2
 from tensorflow_serving.apis import prediction_service_pb2_grpc
 import io
 
+# import script to insert records to the database
+from manage_video_db import insert_multiple_detections
+
+# Import utils from object detection module
+from object_detection.utils import visualization_utils as vis_util
+
 ################################################################################
 #                              Model preparation
 ################################################################################
@@ -93,7 +99,8 @@ def run_inference_for_single_image(host, data_sample):
 
 
 # Define and retrieve attributes of objects identified in a single image
-def get_detections(video_name, frame_sequence, im_width, im_height, boxes, classes, scores, cat_index, min_score_thresh):
+def get_detections(image_name, image, boxes, classes, scores, cat_index, min_score_thresh):
+    im_width, im_height = image.size
     detections = []
     for i in range(boxes.shape[0]):
         if scores is None or scores[i] > min_score_thresh:
@@ -108,8 +115,10 @@ def get_detections(video_name, frame_sequence, im_width, im_height, boxes, class
             else:
                 class_name='N/A'
             detections.append(
-            {'video': video_name,
-             'frame_sequence': frame_sequence,
+            {'image': image_name,
+             'image_size': {
+                 'im_width':im_width, 
+                 'im_height':im_height},
              'object': class_name,
              'coordinates': {
                  'left': left,
@@ -120,3 +129,61 @@ def get_detections(video_name, frame_sequence, im_width, im_height, boxes, class
             }
         )
     return detections
+
+def show_inference(host, image_path):
+
+    # read an image
+    image = Image.open(image_path)
+    image_np = np.array(image)
+    image_np_expanded = np.expand_dims(image_np, axis=0)
+
+    start = time.time()
+
+    # Actual detection.
+    output_dict = run_inference_for_single_image(host, image_np_expanded)
+    print(output_dict)
+    print(type(output_dict))
+
+    end = time.time()
+    time_diff = round((end - start), 3)
+    print(f'Elapsed time to make prediction on the image: {time_diff} seconds')
+
+    # put boxes and labels on image
+    vis_util.visualize_boxes_and_labels_on_image_array(
+        image_np,
+        output_dict['detection_boxes'],
+        output_dict['detection_classes'],
+        output_dict['detection_scores'],
+        category_index,
+        use_normalized_coordinates=True,
+        max_boxes_to_draw=200,
+        min_score_thresh=THRESHOLD,
+        line_thickness=8)
+
+    image_name = os.path.basename(image_path)
+
+    detections = get_detections(
+        image_name,
+        image,
+        output_dict['detection_boxes'],
+        output_dict['detection_classes'],
+        output_dict['detection_scores'],
+        category_index,
+        THRESHOLD)
+
+    # write detections to the video db
+    insert_multiple_detections(detections)
+    print(detections)
+
+    # save image with bounding boxes
+    im_save = Image.fromarray(image_np)
+    image_base = os.path.splitext(image_name)[0]
+    image_ext= os.path.splitext(image_name)[1]
+    new_img_name = image_base + '_bbox' + image_ext
+    im_save.save(PATH_TO_SAVE_IMAGES_DIR + '/' + new_img_name)
+
+
+if __name__ == '__main__':
+
+    show_inference(HOST, sys.argv[1])
+#our final output should be something like detections, for single image or overall_detections if analysing a batch of images
