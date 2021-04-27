@@ -6,7 +6,6 @@ import sys
 import os
 import time
 import grpc
-import imageio_ffmpeg as imgf
 import tensorflow as tf
 from tensorflow_serving.apis import predict_pb2
 from tensorflow_serving.apis import prediction_service_pb2_grpc
@@ -93,7 +92,7 @@ def run_inference_for_single_image(host, data_sample):
 
 
 # Define and retrieve attributes of objects identified in a single image
-def get_detections(video_name, frame_sequence, im_width, im_height, boxes, classes, scores, cat_index, min_score_thresh):
+def get_detections(frame_sequence, im_width, im_height, boxes, classes, scores, cat_index, min_score_thresh):
     detections = []
     for i in range(boxes.shape[0]):
         if scores is None or scores[i] > min_score_thresh:
@@ -108,8 +107,7 @@ def get_detections(video_name, frame_sequence, im_width, im_height, boxes, class
             else:
                 class_name='N/A'
             detections.append(
-            {'video': video_name,
-             'frame_sequence': frame_sequence,
+            {'frame_sequence': frame_sequence,
              'object': class_name,
              'coordinates': {
                  'left': left,

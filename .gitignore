@@ -15,4 +15,5 @@ object_detection/
 *.odt
 From_Maralbek/
 tests/
-
+utils/
+protos/

@@ -149,10 +149,11 @@ def processor(img, h, w):
     n_frame = n_frame+1
     # get the detections bounding boxes
     # get_localization function runs the tf detection
-    z_box = det.get_localization(img)[0]
-    output_dict = det.get_localization(img)[1]
-    category_index = det.get_localization(img)[2]
-    threshold = det.get_localization(img)[3]
+    z_box_raw = det.get_localization(img)
+    z_box = z_box_raw[0]
+    output_dict = z_box_raw[1]
+    cat_index = z_box_raw[2]
+    threshold = z_box_raw[3]
     # initiate the tracker list
     x_box =[]
 
@@ -311,4 +312,4 @@ def processor(img, h, w):
 
     print('Total number of people crossed ' + str(totalUp+totalDown))
     tracker_list = [x for x in tracker_list if x.no_losses<=max_detection]
-    return img, output_dict, category_index, threshold
+    return img, output_dict, cat_index, threshold

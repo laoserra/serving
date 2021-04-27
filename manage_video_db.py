@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS detections (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   unix_time_insertion INTEGER NOT NULL,
   video_id INTEGER NOT NULL,
-  image_sequence INTEGER NOT NULL,
+  frame_sequence INTEGER NOT NULL,
   object TEXT,
   bbox_left REAL,
   bbox_right REAL,
@@ -185,9 +185,8 @@ def get_video_id(video_name):
 #print(get_detection_attributes('test_1s_000011.jpg'))
 
 
-def insert_multiple_detections(detections):
-    video_id = get_video_id(detections[0]['video'])
-    frame_sequence = detections[0]['frame_sequence']
+def insert_multiple_detections(video_name, detections):
+    video_id = get_video_id(video_name)
     detections_list = []
     item = None
     objects_of_interest = ['pedestrian']
@@ -195,7 +194,7 @@ def insert_multiple_detections(detections):
         if detection['object'] in objects_of_interest:
             item = (round(time.time()),
                     video_id,
-                    frame_sequence,
+                    detection['frame_sequence'],
                     detection['object'],
                     round(detection['coordinates']['left'], 3),
                     round(detection['coordinates']['right'], 3),
@@ -207,7 +206,7 @@ def insert_multiple_detections(detections):
 
     insert_detections = '''
     INSERT INTO
-      detections (unix_time_insertion, video_id, image_sequence, object,
+      detections (unix_time_insertion, video_id, frame_sequence, object,
                   bbox_left, bbox_right, bbox_bottom, bbox_top, score)
     VALUES (?,?,?,?,?,?,?,?,?);
     '''

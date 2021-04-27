@@ -14,7 +14,8 @@ import detections_grpc_video as dgv
 
 category_index = {1: {'id': 1, 'name': 'pedestrian'}}
 
-THRESHOLD = 0.4
+# minimum threshold for detections
+THRESHOLD = 0.6
 
 
 class ObjectDetector(object):
@@ -72,7 +73,7 @@ class ObjectDetector(object):
         classes =np.squeeze(classes)
         scores = np.squeeze(scores)
         cls = classes.tolist()
-        idx_vec = [i for i, v in enumerate(cls) if ((scores[i]>0.6))]
+        idx_vec = [i for i, v in enumerate(cls) if ((scores[i]>THRESHOLD))]
         if len(idx_vec) ==0:
             print('there are not any detections, passing to the next frame...')
         else:
