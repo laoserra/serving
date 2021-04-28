@@ -6,14 +6,13 @@ import sys
 import os
 import time
 import grpc
-import imageio_ffmpeg as imgf
 import tensorflow as tf
 from tensorflow_serving.apis import predict_pb2
 from tensorflow_serving.apis import prediction_service_pb2_grpc
 import io
 
 # import script to insert records to the database
-from manage_video_db import insert_multiple_detections
+#from manage_video_db import insert_multiple_detections
 
 # Import utils from object detection module
 from object_detection.utils import visualization_utils as vis_util
@@ -25,7 +24,12 @@ from object_detection.utils import visualization_utils as vis_util
 # path to save tested images with bboxes and object counts
 PATH_TO_SAVE_IMAGES_DIR = '/home/lserra/Work/Serving/output_folder/video'
 
-category_index = {1: {'id': 1, 'name': 'pedestrian'}}
+#category_index = {1: {'id': 1, 'name': 'pedestrian'}}
+category_index = {1: {'id': 1, 'name': 'pedestrian'},
+                  2: {'id': 2, 'name': 'cyclist'},
+                  3: {'id': 3, 'name': 'partially-visible person'},
+                  4: {'id': 4, 'name': 'ignore region'},
+                  5: {'id': 5, 'name': 'crowd'}}
 
 # Configuration parameters
 # set minimum score threshold
@@ -33,7 +37,7 @@ THRESHOLD = 0.5
 # host ip address
 HOST = 'localhost'
 # model to use
-MODEL_NAME='faster_rcnn_video'
+MODEL_NAME='widerperson'
 
 ################################################################################
 #                    Prepare to use gRPC endpoint from tf serving 
@@ -141,8 +145,6 @@ def show_inference(host, image_path):
 
     # Actual detection.
     output_dict = run_inference_for_single_image(host, image_np_expanded)
-    print(output_dict)
-    print(type(output_dict))
 
     end = time.time()
     time_diff = round((end - start), 3)
@@ -172,8 +174,8 @@ def show_inference(host, image_path):
         THRESHOLD)
 
     # write detections to the video db
-    insert_multiple_detections(detections)
-    print(detections)
+    #insert_multiple_detections(detections)
+    #print(detections)
 
     # save image with bounding boxes
     im_save = Image.fromarray(image_np)

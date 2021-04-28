@@ -18,7 +18,12 @@ import io
 # path to save tested images with bboxes and object counts
 PATH_TO_SAVE_IMAGES_DIR = '/home/lserra/Work/Serving/output_folder/video'
 
-category_index = {1: {'id': 1, 'name': 'pedestrian'}}
+#category_index = {1: {'id': 1, 'name': 'pedestrian'}}
+category_index = {1: {'id': 1, 'name': 'pedestrian'},
+                  2: {'id': 2, 'name': 'cyclist'},
+                  3: {'id': 3, 'name': 'partially-visible person'},
+                  4: {'id': 4, 'name': 'ignore region'},
+                  5: {'id': 5, 'name': 'crowd'}}
 
 # Configuration parameters
 # set minimum score threshold
@@ -26,7 +31,7 @@ THRESHOLD = 0.5
 # host ip address
 HOST = 'localhost'
 # model to use
-MODEL_NAME='faster_rcnn_video'
+MODEL_NAME='widerperson'
 
 ################################################################################
 #                    Prepare to use gRPC endpoint from tf serving 

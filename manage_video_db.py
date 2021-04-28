@@ -3,13 +3,21 @@ from sqlite3 import Error
 import time
 import pandas as pd
 
-# path to existent database
-path = '/home/lserra/Work/Serving/output_folder/video/video.db'
+################################################################################
+#                              Configuration parameters
+################################################################################
+# PATH to existent database
+PATH = '/home/lserra/Work/Serving/output_folder/video/video.db'
 
-def create_connection(path):
+OBJECTS = ['pedestrian', 'cyclist', 'partially-visible person', 'ignore region', 'crowd']
+
+################################################################################
+
+
+def create_connection(PATH):
     connection = None
     try:
-        connection = sqlite3.connect(path)
+        connection = sqlite3.connect(PATH)
         print('Connection to SQLite DB successful')
     except Error as e:
         print(f'The error "{e}" ocurred')
@@ -17,7 +25,7 @@ def create_connection(path):
     return connection
 
 # Establish a connection to existent database
-connection = create_connection(path)
+connection = create_connection(PATH)
 
 def manage_database(command, connection_to_db=connection):
     cursor = connection_to_db.cursor()
@@ -99,12 +107,13 @@ def execute_query(query, condition=None, connection_to_db=connection):
         print(f'The error "{e}" ocurred')
 
 # querying the database for detections
-#select_detections = 'SELECT * FROM detections'
-#detections = execute_query(select_detections)
+select_detections = 'SELECT * FROM detections'
+detections = execute_query(select_detections)
 #print(detections)
-#df = pd.DataFrame(detections, columns=['id','unix_time_insertion','video_id','image_sequence','object',
-#                                        'bbox_left','bbox_right','bbox_bottom','bbox_top','score'])
-#print(df.tail(20))
+df = pd.DataFrame(detections, columns=['id','unix_time_insertion','video_id','image_sequence','object',
+                                        'bbox_left','bbox_right','bbox_bottom','bbox_top','score'])
+df = df.tail(2000)
+df.to_csv('/home/lserra/Work/Serving/select_detections.csv', index=False)
 
 # querying the video table
 #select_video = 'SELECT * FROM video'
@@ -189,7 +198,7 @@ def insert_multiple_detections(video_name, detections):
     video_id = get_video_id(video_name)
     detections_list = []
     item = None
-    objects_of_interest = ['pedestrian']
+    objects_of_interest = OBJECTS
     for detection in detections:
         if detection['object'] in objects_of_interest:
             item = (round(time.time()),

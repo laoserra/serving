@@ -2,8 +2,7 @@
 
 DIR_IN="/home/lserra/Work/Serving/input_folder/video"
 DIR_ARCHIVE="/home/lserra/Work/Serving/archive_folder/video"
-SCRIPT_DETECTIONS="/home/lserra/Work/Serving/detections_grpc_video.py"
-SCRIPT_VIDEO="/home/lserra/Work/Serving/object_tracking.py"
+SCRIPT_DETECTIONS="/home/lserra/Work/Serving/detections_grpc_videoframes.py"
 
 source /home/lserra/python-virtual-environments/serving/bin/activate
 
@@ -14,8 +13,6 @@ do
   then
     for video in $DIR_IN/*.mp4
       do
-        echo Detected $video, running counts
-        python $SCRIPT_VIDEO $video
         echo Converting $video to jpeg frames
         ffmpeg -i $video $DIR_IN/"$(basename "$video" .mp4)"_%06d.jpg
         mv $video $DIR_ARCHIVE

@@ -99,6 +99,7 @@ db.manage_database(update_counts)
 # flush last detections to database
 db.insert_multiple_detections(video_name, detections)
 print('(flushed remainder detections to db)')
+#print(detections)
 
 # insert tracks to the tracks table
 db.insert_multiple_tracks(backbone.tracker_dict, video_name)

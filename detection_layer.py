@@ -12,7 +12,12 @@ from utils import visualization_utils
 import detections_grpc_video as dgv
 
 
-category_index = {1: {'id': 1, 'name': 'pedestrian'}}
+#category_index = {1: {'id': 1, 'name': 'pedestrian'}}
+category_index = {1: {'id': 1, 'name': 'pedestrian'},
+                  2: {'id': 2, 'name': 'bycicle'},
+                  3: {'id': 3, 'name': 'partially-visible person'},
+                  4: {'id': 4, 'name': 'ignore region'},
+                  5: {'id': 5, 'name': 'crowd'}}
 
 # minimum threshold for detections
 THRESHOLD = 0.6
