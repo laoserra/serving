@@ -20,7 +20,7 @@ category_index = {1: {'id': 1, 'name': 'pedestrian'},
                   5: {'id': 5, 'name': 'crowd'}}
 
 # minimum threshold for detections
-THRESHOLD = 0.6
+THRESHOLD = 0.2
 
 
 class ObjectDetector(object):

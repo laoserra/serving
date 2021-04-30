@@ -96,7 +96,7 @@ def run_inference_for_single_image(host, data_sample):
     return output_dict
 
 
-# Define and retrieve attributes of objects identified in a single image
+# Define and retrieve attributes of objects identified on a single image
 def get_detections(frame_sequence, im_width, im_height, boxes, classes, scores, cat_index, min_score_thresh):
     detections = []
     for i in range(boxes.shape[0]):
@@ -107,13 +107,9 @@ def get_detections(frame_sequence, im_width, im_height, boxes, classes, scores, 
                                           xmax * im_width,
                                           ymin * im_height,
                                           ymax * im_height)
-            if classes[i] in cat_index.keys():
-                class_name = cat_index[classes[i]]['name']
-            else:
-                class_name='N/A'
             detections.append(
             {'frame_sequence': frame_sequence,
-             'object': class_name,
+             'class': int(classes[i]), #cast numpy.int64 to python int
              'coordinates': {
                  'left': left,
                  'right': right,

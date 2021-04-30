@@ -45,7 +45,7 @@ def flush_detections(counter, partial_detections):
     condition = counter % FLUSH_TRIGGER
     if not condition:
         db.insert_multiple_detections(video_name, partial_detections)
-        detections=[]
+        detections = []
         print('(flushed detections to db)')
 
 #initialize the frame counting variable
