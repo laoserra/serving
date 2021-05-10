@@ -1,0 +1,4 @@
+num_batch_threads { value: 8 }
+max_batch_size { value: 10 }
+batch_timeout_micros { value: 50000 }
+pad_variable_length_inputs: true

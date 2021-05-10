@@ -1,37 +1,11 @@
 # base imports
-from PIL import Image
 import numpy as np
-import pandas as pd
-import sys
-import os
-import time
 import grpc
 import tensorflow as tf
 from tensorflow_serving.apis import predict_pb2
 from tensorflow_serving.apis import prediction_service_pb2_grpc
-import io
 
-################################################################################
-#                              Model preparation
-################################################################################
-
-# path to save tested images with bboxes and object counts
-PATH_TO_SAVE_IMAGES_DIR = '/home/lserra/Work/Serving/output_folder/video'
-
-#category_index = {1: {'id': 1, 'name': 'pedestrian'}}
-category_index = {1: {'id': 1, 'name': 'pedestrian'},
-                  2: {'id': 2, 'name': 'cyclist'},
-                  3: {'id': 3, 'name': 'partially-visible person'},
-                  4: {'id': 4, 'name': 'ignore region'},
-                  5: {'id': 5, 'name': 'crowd'}}
-
-# Configuration parameters
-# set minimum score threshold
-THRESHOLD = 0.5
-# host ip address
-HOST = 'localhost'
-# model to use
-MODEL_NAME='widerperson'
+import config_file as config
 
 ################################################################################
 #                    Prepare to use gRPC endpoint from tf serving 
@@ -48,7 +22,7 @@ def create_grpc_stub(host, port=8500):
 
 
 # Call model and signature to make predictions on the image
-def grpc_request(stub, data_sample, model_name=MODEL_NAME, \
+def grpc_request(stub, data_sample, model_name=config.MODEL_NAME, \
                  signature_name='serving_default'):
     request = predict_pb2.PredictRequest()
     request.model_spec.name = model_name

@@ -1,0 +1,21 @@
+$ docker pull tensorflow/serving:latest
+$ docker run --rm -p 8500:8500 --mount type=bind,source=/home/lserra/Work/Serving/models/faster_rcnn_video,target=/models/faster_rcnn_video -e MODEL_NAME=faster_rcnn_video -t tensorflow/serving:latest
+Note 0: Leave this terminal running and open a different terminal to continue with the work below.
+Note 1: I called you model "faster_rcnn_video" with the following directory tree:
+models/faster_rcnn_video/
+└── 1
+    ├── saved_model.pb
+    └── variables
+        ├── variables.data-00000-of-00002
+        ├── variables.data-00001-of-00002
+        └── variables.index
+In the docker line above you just need to change the "source", that is the path to where your model is located. Leave this terminal running.
+Next step: edit the file "detections_grpc_video.py" and change the "PATH_TO_SAVE_IMAGES_DIR" to where you want to save the frames with the bounding boxes.
+Next step: test the model with an image, within a python virtual env with all the necessary libraries:
+$ python detections_grpc_video.py $HOME/Work/Serving/images/P1040309.jpg
+Finally, if you are satisfied, stop the container in a different terminal:
+$ docker container ls
+Note 0: with the command above grab the id of the container
+$ docker stop <container_id>
+I think now it's time to start merging my code with your code and testing as explained below!
+GOOD WORK!

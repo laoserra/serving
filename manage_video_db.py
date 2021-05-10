@@ -1,27 +1,15 @@
 import sqlite3
 from sqlite3 import Error
 import time
-import pandas as pd
+import config_file as config
+#import pandas as pd
 
-################################################################################
-#                              Configuration parameters
-################################################################################
-# PATH to existent database
-PATH = '/home/lserra/Work/Serving/output_folder/video/video.db'
+category_index = config.CATEGORY_INDEX
 
-category_index = {1: {'id': 1, 'name': 'pedestrian'},
-                  2: {'id': 2, 'name': 'cyclist'},
-                  3: {'id': 3, 'name': 'partially-visible person'},
-                  4: {'id': 4, 'name': 'ignore region'},
-                  5: {'id': 5, 'name': 'crowd'}}
-
-################################################################################
-
-
-def create_connection(PATH):
+def create_connection(path_to_db):
     connection = None
     try:
-        connection = sqlite3.connect(PATH)
+        connection = sqlite3.connect(path_to_db)
         print('Connection to SQLite DB successful')
     except Error as e:
         print(f'The error "{e}" ocurred when trying to connect to db')
@@ -29,7 +17,7 @@ def create_connection(PATH):
     return connection
 
 # Establish a connection to existent database
-connection = create_connection(PATH)
+connection = create_connection(config.PATH_DB)
 
 def manage_database(command, connection_to_db=connection):
     cursor = connection_to_db.cursor()
@@ -45,6 +33,8 @@ CREATE TABLE IF NOT EXISTS video (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   unix_time_insertion INTEGER NOT NULL,
   name TEXT NOT NULL,
+  fps INTEGER,
+  file_format TEXT,
   frame_height INTEGER,
   frame_width INTEGER,
   counts_up INTEGER DEFAULT 0,
@@ -98,7 +88,7 @@ manage_database(create_video_table)
 manage_database(create_tracks_table)
 manage_database(create_detections_table)
 
-# if table classes not created create and insert classes
+# if table classes not created create it and insert classes
 def check_create_classes_table(classes_table, connection_to_db=connection):
     cursor = connection_to_db.cursor()
     #get the count of tables with the name 'classes'
@@ -143,7 +133,6 @@ def execute_query(query, condition=None, connection_to_db=connection):
 # querying the database for detections
 #select_detections = 'SELECT * FROM detections'
 #detections = execute_query(select_detections)
-#print(detections)
 #df = pd.DataFrame(detections, columns=['id','unix_time_insertion','video_id','image_sequence','class_id',
 #                                        'bbox_left','bbox_right','bbox_bottom','bbox_top','score'])
 #df = df.tail(2000)
@@ -155,19 +144,16 @@ def execute_query(query, condition=None, connection_to_db=connection):
 #print(video_data)
 #df = pd.DataFrame(video_data, columns=['id','unix_time_insertion','name','frame_height',
 #                                       'frame_width','counts_up','counts_down'])
-#print(df.tail())
 
 # querying the database for tracks
 #select_tracks = 'SELECT * FROM tracks'
 #tracks = execute_query(select_tracks)
-#print(tracks)
 #df = pd.DataFrame(tracks, columns=['id','object_id', 'coord_x', 'coord_y', 'video_id'])
 #print(df)
 
 # querying the database for classes
 #select_classes = 'SELECT * FROM classes'
 #classes = execute_query(select_classes)
-#print(classes)
 #df = pd.DataFrame(classes, columns=['id','object_id', 'coord_x', 'coord_y', 'video_id'])
 #print(df)
 
@@ -187,10 +173,12 @@ def manage_multiple_records(insert_table,
         print(f'The error "{e}" ocurred when trying to insert data to the {table} table')
 
 
-def insert_video_data(video_name, height, width, totalUp, totalDown):
+def insert_video_data(video_name, fps, file_format, height, width, totalUp, totalDown):
 
     video_list = [(round(time.time()),
                    video_name,
+                   fps,
+                   file_format,
                    height,
                    width,
                    totalUp,
@@ -198,8 +186,8 @@ def insert_video_data(video_name, height, width, totalUp, totalDown):
     
     insert_video = '''
     INSERT INTO
-      video (unix_time_insertion, name, frame_height, frame_width, counts_up, counts_down)
-    VALUES (?,?,?,?,?,?);
+      video (unix_time_insertion, name, fps, file_format, frame_height, frame_width, counts_up, counts_down)
+    VALUES (?,?,?,?,?,?,?,?);
     '''
     manage_multiple_records(insert_video, video_list, 'video')
 
@@ -241,7 +229,6 @@ def get_class_id(class_name):
 
     return class_id
 
-#print(get_class_id('N/A'))
 
 def insert_multiple_detections(video_name, detections):
     video_id = get_video_id(video_name)
@@ -271,3 +258,14 @@ def insert_multiple_detections(video_name, detections):
     VALUES (?,?,?,?,?,?,?,?,?);
     '''
     manage_multiple_records(insert_detections, detections_list, 'detections')
+
+
+# update counts on the video table after video processed
+def update_counts(totalUp, totalDown, video_name):
+    update_counts = f"""
+    UPDATE video
+    SET counts_up = {totalUp},
+        counts_down = {totalDown}
+    WHERE name = '{video_name}';
+    """
+    manage_database(update_counts)

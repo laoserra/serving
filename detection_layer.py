@@ -1,26 +1,17 @@
 import numpy as np
-import tensorflow as tf
-from PIL import Image
 import os
 from matplotlib import pyplot as plt
-import time
-from glob import glob
 cwd = os.path.dirname(os.path.realpath(__file__))
-from utils import label_map_util
 
 from utils import visualization_utils
 import detections_grpc_video as dgv
+import config_file as config
 
 
-#category_index = {1: {'id': 1, 'name': 'pedestrian'}}
-category_index = {1: {'id': 1, 'name': 'pedestrian'},
-                  2: {'id': 2, 'name': 'bycicle'},
-                  3: {'id': 3, 'name': 'partially-visible person'},
-                  4: {'id': 4, 'name': 'ignore region'},
-                  5: {'id': 5, 'name': 'crowd'}}
+category_index = config.CATEGORY_INDEX
 
 # minimum threshold for detections
-THRESHOLD = 0.2
+threshold = config.THRESHOLD
 
 
 class ObjectDetector(object):
@@ -46,13 +37,12 @@ class ObjectDetector(object):
         
     def get_localization(self, image, visual=False):
         global category_index
-        global THRESHOLD
 
         input_image = np.asarray(image)
         image_np_expanded = np.expand_dims(input_image, axis = 0)
         
         
-        output_dict = dgv.run_inference_for_single_image('localhost', image_np_expanded)
+        output_dict = dgv.run_inference_for_single_image(config.HOST, image_np_expanded)
         
         # Run inference
         detection_boxes = output_dict['detection_boxes']
@@ -69,7 +59,7 @@ class ObjectDetector(object):
                 np.squeeze(classes).astype(np.int32),
                 np.squeeze(scores),
                 category_index,
-                use_normalized_coordinates=True,min_score_thresh=THRESHOLD,
+                use_normalized_coordinates=True,min_score_thresh=threshold,
                 line_thickness=3)
             plt.figure(figsize=(9,6))
             plt.imshow(image)
@@ -78,7 +68,7 @@ class ObjectDetector(object):
         classes =np.squeeze(classes)
         scores = np.squeeze(scores)
         cls = classes.tolist()
-        idx_vec = [i for i, v in enumerate(cls) if ((scores[i]>THRESHOLD))]
+        idx_vec = [i for i, v in enumerate(cls) if ((scores[i]>threshold))]
         if len(idx_vec) ==0:
             print('there are not any detections, passing to the next frame...')
         else:
@@ -95,4 +85,4 @@ class ObjectDetector(object):
                 #print(box, ', confidence: ', scores[idx], 'ratio:', ratio)
 
             self.object_boxes = tmp_object_boxes
-        return self.object_boxes, output_dict, category_index, THRESHOLD
+        return self.object_boxes, output_dict

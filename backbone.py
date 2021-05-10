@@ -1,21 +1,17 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from collections import deque
-#from sklearn.utils.linear_assignment_ import linear_assignment
 from scipy.optimize import linear_sum_assignment as linear_assignment
 import collections
 import detection_layer
 import cv2
-import json
 import os
 import sys
-
+import config_file as config
 
 from utils.object_tracking_module import tracking_layer
 from utils.object_tracking_module import tracking_utils
 from trackableobject import TrackableObject
-from output_directories import horizontal
 
+horizontal = config.HORIZONTAL
 
 max_detection = 15
 min_detection =1
@@ -152,8 +148,6 @@ def processor(img, h, w):
     z_box_raw = det.get_localization(img)
     z_box = z_box_raw[0]
     output_dict = z_box_raw[1]
-    cat_index = z_box_raw[2]
-    threshold = z_box_raw[3]
     # initiate the tracker list
     x_box =[]
 
@@ -312,4 +306,4 @@ def processor(img, h, w):
 
     print('Total number of people crossed ' + str(totalUp+totalDown))
     tracker_list = [x for x in tracker_list if x.no_losses<=max_detection]
-    return img, output_dict, cat_index, threshold
+    return img, output_dict

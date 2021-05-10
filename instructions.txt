@@ -1,0 +1,18 @@
+Instructions to run a docker container with avenues running on tf 2.0:
+
+(You need to have a cuda capable gpu)
+
+1. Install Docker on your local host machine
+2. Install NVIDIA Container Toolkit (see: https://www.tensorflow.org/install/docker)
+3. To install and untar the file make in cmd line: "docker load < avenues.tar"
+4. check if your avenues container has access to the host gpu with "docker run --gpus all --rm avenues:1.0.0 nvidia-smi". It should return your cuda version.
+5. You should have a working directory with the following three subdirectories: input_folder, output_folder and archive_folder.
+6. Run the following command: "docker run --gpus all --rm -v ~/Work/tensorflow/cctv:/shared-folder avenues:1.0.0 detect_objects_tf2" for access to gpu. With no access to gpu remove the part "--gpus all" from the command. Replace the part of my working directory in the command ("~/Work/tensorflow/cctv") with yours.
+
+Some few notes though:
+My python executable "detect_objects_tf2" lives inside the container in the directory: "/home/tensorflow/.local/bin/". You will need to edit it to update with your code such as the acess to mongoDB. I can help you with that if you need to.
+After processing all the images, you will get a message with the average processing time per image. You can perform your tests with and without gpu. I did already a small test: with just one picture and 3 persons, cpu is slightly faster but with 3 images with ~10 persons per image, gpu is much faster (3.9 s/img for GPU and 7.4s/per img for CPU). Later we can delete this processing time from the code to make it even faster.
+I'm keeping the same model and the same threshold to identify objects (50% confidence) as in the actual project with tf1.0.
+I'm not saving detections anymore. You will have to do it to your DB.
+I put detections  and counts in the same script.
+Now, only the processed images are moved from the input directory to archive directory.

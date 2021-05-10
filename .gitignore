@@ -8,7 +8,6 @@ images/
 tf1_models/
 object_detection/
 *.csv
-*.txt
 *.log
 *.swp
 *.docx

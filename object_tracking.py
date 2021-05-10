@@ -2,14 +2,10 @@ import numpy as np
 import cv2
 import backbone
 import time
-import tensorflow as tf
 import sys
 import os
 
-
-from utils.object_tracking_module import tracking_layer
-from utils import label_map_util
-from output_directories import PATH_TO_SAVE_VIDEOS
+import config_file as config
 import manage_video_db as db
 import detections_grpc_video as dgv
 
@@ -28,20 +24,20 @@ video_name = os.path.basename(sys.argv[1])
 video_base = os.path.splitext(video_name)[0]
 video_ext= os.path.splitext(video_name)[1]
 output_video_name = video_base + '_bbox' + video_ext
-out = cv2.VideoWriter(PATH_TO_SAVE_VIDEOS + '/' + output_video_name, fourcc, fps, (width, height))
-
+out = cv2.VideoWriter(config.OUTPUT_FOLDER + output_video_name, fourcc, fps, (width, height))
 
 # insert initial data to the video table
-db.insert_video_data(video_name, height, width, 0, 0)
+db.insert_video_data(video_name, fps, video_ext[1:], height, width, 0, 0)
 
 # set trigger to flush detections to db
-FLUSH_TRIGGER = 12
+FLUSH_TRIGGER = int(sys.argv[2])
 
 # start list of detections
 detections = []
 
 # flush partial detections to database
 def flush_detections(counter, partial_detections):
+    global detections
     condition = counter % FLUSH_TRIGGER
     if not condition:
         db.insert_multiple_detections(video_name, partial_detections)
@@ -64,8 +60,8 @@ while(True):
         processed_img_raw = backbone.processor(img, height, width)
         processed_img = processed_img_raw[0] 
         output_dict = processed_img_raw[1] 
-        category_index = processed_img_raw[2] 
-        threshold = processed_img_raw[3] 
+        category_index = config.CATEGORY_INDEX
+        threshold = config.THRESHOLD
         detections.extend(dgv.get_detections(
             frame_number,
             width,
@@ -77,29 +73,21 @@ while(True):
             threshold))
         # write detections to the video db
         flush_detections(frame_number, detections)
-        #print(return_tracks_data())
         print ("per-frame time: " + str(time.time() - start_time) + " seconds")
         print ("overall time: " + str(time.time() - init_time) + " seconds")     
         out.write(processed_img)
         print("writing frame " + str(frame_number))
-    #break the while loop if there is no frames to process    
+    #break the while loop if there are no frames to process    
     else:
         break 
 print("end of the video!")
 
 # update counts on the video table
-update_counts = f"""
-UPDATE video
-SET counts_up = {backbone.totalUp},
-    counts_down = {backbone.totalDown}
-WHERE name = '{video_name}';
-"""
-db.manage_database(update_counts)
+db.update_counts(backbone.totalUp, backbone.totalDown, video_name)
 
 # flush last detections to database
 db.insert_multiple_detections(video_name, detections)
 print('(flushed remainder detections to db)')
-#print(detections)
 
 # insert tracks to the tracks table
 db.insert_multiple_tracks(backbone.tracker_dict, video_name)
